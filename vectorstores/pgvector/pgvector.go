@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pgvector/pgvector-go"
 	"github.com/tmc/langchaingo/embeddings"
 	"github.com/tmc/langchaingo/schema"
@@ -37,7 +38,7 @@ var (
 // Store is a wrapper around the pgvector client.
 type Store struct {
 	embedder              embeddings.Embedder
-	conn                  *pgx.Conn
+	conn                  *pgxpool.Pool
 	postgresConnectionURL string
 	embeddingTableName    string
 	collectionTableName   string
@@ -64,7 +65,7 @@ func New(ctx context.Context, opts ...Option) (Store, error) {
 		return Store{}, err
 	}
 	if store.conn == nil {
-		store.conn, err = pgx.Connect(ctx, store.postgresConnectionURL)
+		store.conn, err = pgxpool.New(ctx, store.postgresConnectionURL)
 		if err != nil {
 			return Store{}, err
 		}
@@ -370,8 +371,8 @@ LIMIT $1`, s.embeddingTableName, s.embeddingTableName, s.embeddingTableName,
 }
 
 // Close closes the connection.
-func (s Store) Close(ctx context.Context) error {
-	return s.conn.Close(ctx)
+func (s Store) Close(ctx context.Context) {
+	s.conn.Close()
 }
 
 func (s Store) DropTables(ctx context.Context) error {

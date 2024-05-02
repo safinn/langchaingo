@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/tmc/langchaingo/embeddings"
 )
 
@@ -64,10 +64,8 @@ func WithCollectionTableName(name string) Option {
 	}
 }
 
-// WithConn is an option for specifying the Postgres connection.
-// From pgx doc: it is not safe for concurrent usage.Use a connection pool to manage access
-// to multiple database connections from multiple goroutines.
-func WithConn(conn *pgx.Conn) Option {
+// WithConn is an option for specifying the Postgres pool connection.
+func WithConn(conn *pgxpool.Pool) Option {
 	return func(p *Store) {
 		p.conn = conn
 	}
